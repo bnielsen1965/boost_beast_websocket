@@ -1,0 +1,36 @@
+#include <boost/lambda/lambda.hpp>
+#include <iostream>
+#include <iterator>
+#include <algorithm>
+#include <signal.h>
+
+#include "server.hpp"
+
+void exitHandler (int s)
+{
+	// bad design, need to tell server to exit
+	std::cout << "exiting..." << std::endl;
+	exit(0);
+}
+int main()
+{
+	std::shared_ptr<Server> server(std::make_shared<Server>());
+	server->run();
+
+	struct sigaction sigIntHandler;
+	sigIntHandler.sa_handler = exitHandler;
+	sigemptyset(&sigIntHandler.sa_mask);
+	sigIntHandler.sa_flags = 0;
+	sigaction(SIGINT, &sigIntHandler, NULL);
+
+	server->join();
+	std::cout << "Exit" << std::endl;
+	
+/*
+//    using namespace boost::lambda;
+    typedef std::istream_iterator<int> in;
+
+    std::for_each(
+        in(std::cin), in(), std::cout << (boost::lambda::_1 * 3) << " " );
+				*/
+}
