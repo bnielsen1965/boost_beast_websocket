@@ -17,10 +17,16 @@ class Session : public std::enable_shared_from_this<Session> {
 		void write (std::string msg);
 		void onWrite (boost::beast::error_code ec, std::size_t bytesTransferred);
 		void close ();
+		bool isConnected ();
+		bool isConnecting ();
+		bool isReady ();
 
 	private:
 		boost::beast::websocket::stream<boost::beast::tcp_stream> ws;
 		boost::beast::flat_buffer buffer;
+		bool connected;
+		bool connecting;
+		bool ready;
 };
 
 #endif

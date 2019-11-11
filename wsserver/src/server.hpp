@@ -8,11 +8,11 @@
 #include <boost/thread.hpp>
 #include <vector>
 
-#include "session.hpp"
+#include "sessionlist.hpp"
 
 class Server : public std::enable_shared_from_this<Server> {
 	public:
-		Server (int threads=DEFAULT_THREADS);
+		Server (int threads = DEFAULT_THREADS);
 		~Server ();
 		void run ();
 		void stop ();
@@ -27,7 +27,7 @@ class Server : public std::enable_shared_from_this<Server> {
 		boost::asio::io_context ioc;
 		boost::asio::ip::tcp::acceptor acceptor;
 		boost::thread_group threadGroup;
-		std::vector<Session> sessions;
+		SessionList sessionList;
 };
 
 #endif

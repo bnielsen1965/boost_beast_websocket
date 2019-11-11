@@ -5,8 +5,6 @@
 #include <memory>
 #include <boost/asio/strand.hpp>
 
-#include "session.hpp"
-
 Server::Server (int threads) : ioc(threads), acceptor(ioc) {
 	threadCount = threads;
 	boost::beast::error_code ec;
@@ -55,7 +53,7 @@ void Server::onAccept (boost::beast::error_code ec, boost::asio::ip::tcp::socket
 	std::string remoteAddress = socket.remote_endpoint().address().to_string();
 	std::cout << "Connection from " << remoteAddress << std::endl;
 	errorCodeCheck(ec); // need to do something else so we don't exit
-	std::make_shared<Session>(std::move(socket))->run();
+	sessionList.createSession(std::move(socket));
 	doAccept();
 }
 

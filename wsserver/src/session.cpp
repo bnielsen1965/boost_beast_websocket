@@ -4,9 +4,15 @@
 #include <iostream>
 #include <boost/asio/dispatch.hpp>
 
-Session::Session (boost::asio::ip::tcp::socket&& socket) : ws(std::move(socket)) {}
+Session::Session (boost::asio::ip::tcp::socket&& socket) : ws(std::move(socket)) {
+	this->connected = false;
+	this->connecting = true;
+	this->ready = false;
+}
 
-Session::~Session () {}
+Session::~Session () {
+	std::cout << "Session destroyed" << std::endl;
+}
 
 void Session::run () {
 	boost::asio::dispatch(ws.get_executor(), boost::beast::bind_front_handler(&Session::onRun, shared_from_this()));
@@ -23,6 +29,9 @@ void Session::onRun () {
 }
 
 void Session::onAccept (boost::beast::error_code ec) {
+	this->connected = true;
+	this->connecting = false;
+	this->write("{ \"status\": \"connected\" }");
 	doRead();
 }
 
@@ -31,6 +40,7 @@ void Session::doRead () {
 }
 
 void Session::onRead (boost::beast::error_code ec, std::size_t bytesTransferred) {
+	this->ready = true; // TODO set via message handler
 	boost::ignore_unused(bytesTransferred);
 	if (ec == boost::beast::websocket::error::closed) {
 		std::cout << "websocket closed" << std::endl;
@@ -55,6 +65,7 @@ void Session::onRead (boost::beast::error_code ec, std::size_t bytesTransferred)
 	std::cout << "websocket message: " << boost::beast::buffers_to_string(buffer.data()) << std::endl;
 	write(boost::beast::buffers_to_string(buffer.data()));
 	buffer.consume(buffer.size());
+	doRead();
 }
 
 void Session::write (std::string msg) {
@@ -77,4 +88,17 @@ void Session::close () {
 	if (ec) {
 		std::cout << "websocket close error: " << ec.message() << std::endl;
 	}
+	this->connected = false;
+}
+
+bool Session::isConnected () {
+	return this->connected;
+}
+
+bool Session::isConnecting () {
+	return this->connected;
+}
+
+bool Session::isReady () {
+	return this->ready;
 }
